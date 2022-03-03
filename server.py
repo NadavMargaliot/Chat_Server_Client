@@ -1,8 +1,6 @@
 import threading
 import socket
 
-
-
 # download file-billyjoel_music.txt
 
 
@@ -14,12 +12,9 @@ server.bind((host, port))
 server.listen(5)
 clients = []
 nicknames = []
-udp_clients = {}
 file_names = []
-buffer_udp = {}
-avilable_port = [0 for i in range(0, 15)]
+available_port = [0 for i in range(0, 15)]
 socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
 
 
 # The protocol between the users:
@@ -30,95 +25,50 @@ socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # To disconnect - just write 'exit'
 
 
-# a function to send a message for all the group
-
-
-def read_line(file_name, index):
-    print("check2")
+def read_line(file_name):
     f = open(file_name, "rb")
     data = f.read(500)
-    buffer_udp[nicknames[index]] = data
-    list_data = []
-    list_data.append(data)
-    while (data):
+    list_data = [data]
+    while data:
         data = f.read(500)
         list_data.append(data)
-        # if (socket_udp.sendto(data.encode(), (host, tmp_dest))):
-
-
-            # time.sleep(0.02)  # Give receiver a bit time to save
-    # socket_udp.close()
     f.close()
-    print(list_data)
     return list_data
 
 
-
 def download_udp(index, file_name):
-    # global port_listen
-    # file_size = os.path.getsize(file_name)
-    # num_of_packet = math.ceil(file_size / byte_size)
-    # if buffer_udp.get(nicknames[index]) is None:
-    #     buffer_udp[nicknames[index]] = []
     global port_listen
     flag = True
     for i in range(0, 15):
         if flag:
-            if avilable_port[i] == 0:
+            if available_port[i] == 0:
                 port_listen = i + 55002
-                avilable_port[i] = 1
+                available_port[i] = 1
                 for j in range(i + 1, 15):
-                    if avilable_port[j] == 0:
+                    if available_port[j] == 0:
                         port_ack = j + 55002
-                        print(i , j)
-                        print(port_listen, port_ack)
-                        avilable_port[j] = 1
+                        available_port[j] = 1
                         flag = False
                         socket_udp.bind((host, port_ack))
-                        # udp_clients[nicknames[index]] = (port_listen, socket_udp)
                         clients[index].send(f'starting udp download~ {port_listen, port_ack}'.encode())
-                        print("check1")
                         break
-    print("check1.5")
-    # print(buffer_udp[nicknames[index]])
-    # print(len(buffer_udp[nicknames[index]]))
-    file_arr = read_line(file_name,index)
-    # print(buffer_udp[nicknames[index]])
-    # print(len(buffer_udp[nicknames[index]]))
+    file_arr = read_line(file_name)
     for i in range(0, len(file_arr)):
-        print(len(file_arr))
-        print("check1.8")
         got_hack = True
-        print("check4")
         while got_hack:
-            # packet_num = (i).to_bytes(3, byteorder='big')
-            # print(packet_num)
-            # print(buffer_udp[nicknames[index]][i])
-
-
-            # data = buffer_udp[nicknames[index]][i]
-            # print(data)
-
-            # packet = packet_num + data
-            # if port_listen != -1:
-            print("check5")
             socket_udp.sendto(file_arr[i], ('127.0.0.1', port_listen))
-            print("check6")
             try:
-                socket_udp.settimeout(0.02)
-                msg = socket_udp.recv(1024).decode()
+                msg = socket_udp.recv(500).decode()
                 if int(msg) == i:
-                    print("MESSAGE = I")
                     got_hack = False
-                    print("GOT HACK = FALSE")
                     break
             except:
                 continue
-
     clients[index].send(f'Download file done'.encode())
     socket_udp.close()
 
 
+# a function to send a message for all the group
 def brodcast(message):
     for client in clients:
         client.send(message)
@@ -187,16 +137,13 @@ def recieve():
     while True:
         client, addr = server.accept()
         print(f"Connected with {str(addr)}")
-
         client.send('NICK'.encode())
         nickname = client.recv(1024).decode()
         nicknames.append(nickname)
         clients.append(client)
-
         print(f'Nickname of the client is {nickname}')
         brodcast(f'{nickname} joined the chat!'.encode())
         client.send('Connected to the server!'.encode())
-
         thread = threading.Thread(target=handle, args=(client,))
         thread.start()
 

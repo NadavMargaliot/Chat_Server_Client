@@ -1,7 +1,9 @@
+
 import threading
 import socket
 
 # download file-billyjoel_music.txt
+# download file-israeli_music.txt
 
 
 host = '127.0.0.1'
@@ -22,10 +24,12 @@ socket_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 # To get the list of the users that are online - just write 'get names'
 # To send a message to the group - just write a message
 # To send a private message to a user - just write at the beginning <nickname_destination> and then your message
+# To get the names of the files - just write 'get files'
+# To download a file - just write "download file-'file name'"
 # To disconnect - just write 'exit'
 
 
-def read_line(file_name):
+def read_file(file_name):
     f = open(file_name, "rb")
     data = f.read(500)
     list_data = [data]
@@ -52,15 +56,15 @@ def download_udp(index, file_name):
                         socket_udp.bind((host, port_ack))
                         clients[index].send(f'starting udp download~ {port_listen, port_ack}'.encode())
                         break
-    file_arr = read_line(file_name)
+    file_arr = read_file(file_name)
     for i in range(0, len(file_arr)):
-        got_hack = True
-        while got_hack:
+        got_ack = True
+        while got_ack:
             socket_udp.sendto(file_arr[i], ('127.0.0.1', port_listen))
             try:
                 msg = socket_udp.recv(500).decode()
                 if int(msg) == i:
-                    got_hack = False
+                    got_ack = False
                     break
             except:
                 continue

@@ -69,7 +69,7 @@ def download_udp(index, file_name):
             except:
                 continue
     clients[index].send(f'Download file done'.encode())
-    socket_udp.close()
+    socket_udp.sendto(f'mother'.encode(), ('127.0.0.1', port_listen))
 
 
 # a function to send a message for all the group

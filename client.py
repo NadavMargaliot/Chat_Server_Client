@@ -17,14 +17,23 @@ def receive_file(port_listen, port_ack):
     client_socket_udp.bind((host, port_listen))
     # a while loop until we got all the packets
     while not_finish:
+
         tmp_msg = client_socket_udp.recv(500).decode()
+        if not_finish == False:
+            break
         recv_packets.append(tmp_msg)
         # sending the server ack
         client_socket_udp.sendto(str(len(recv_packets) - 1).encode(), (host, port_ack))
 
-
+    client_socket_udp.close()
+    f = open("recv_packets.txt", "w")
+    for i in recv_packets:
+        f.write(i)
+    f.close()
+    print("download file done")
 
 def receive():
+    global not_finish
     while True:
         try:
             message = client.recv(1024).decode()
@@ -42,11 +51,6 @@ def receive():
             elif message == 'Download file done':
                 # we finished with the stop and wait so changing the boolean flag
                 not_finish = False
-                f = open("recv_packets.txt", "w")
-                for i in recv_packets:
-                    f.write(i)
-                f.close()
-                print("download file done")
             else:
                 print(message)
         except:
